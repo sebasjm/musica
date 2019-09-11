@@ -52,7 +52,9 @@ const NotaPrettoSlider = withStyles({
   root: {
     color: '#52af77',
     height: 8,
-    width: 600,
+    padding: 5,
+    margin: 10,
+    width: 500,
   },
   thumb: {
     height: 24,
@@ -82,7 +84,9 @@ const NotaPrettoSlider = withStyles({
 const TiempoPrettoSlider = withStyles({
     root: {
         height: 8,
-        width: 200,
+        padding: 5,
+        margin: 10,
+        width: 100,
       },
       thumb: {
         height: 24,
@@ -109,14 +113,48 @@ const TiempoPrettoSlider = withStyles({
       },
 })(Slider);
 
+import Icon from '@material-ui/core/Icon';
+import Paper from '@material-ui/core/Paper';
 
-export default function CustomizedSlider({note, time, onChangeNote, onChangeTime}) {
+const iconStyles = makeStyles(theme => ({
+  root: {
+      position: 'sticky',
+      top: 80,
+      padding: '2px 4px',
+      display: 'flex',
+      alignItems: 'center',
+      marginBottom: theme.spacing(2),
+      width: '100%',
+    },
+    icon: {
+      boxSizing: 'content-box',
+      cursor: 'pointer',
+      color: theme.palette.text.primary,
+      borderRadius: theme.shape.borderRadius,
+      transition: theme.transitions.create(['background-color', 'box-shadow'], {
+        duration: theme.transitions.duration.shortest,
+      }),
+      padding: 5,
+      margin: 10,
+      '&:hover': {
+        backgroundColor: theme.palette.background.paper,
+        boxShadow: theme.shadows[1],
+      },
+      }
+}));
+
+
+export default function CustomizedSlider({note, time, onChangeNote, onChangeTime, onAddUp, onAddDown, onDelete}) {
   const classes = useStyles();
+  const cls = iconStyles();
 
   return (
     <div className={classes.root}>
-      <NotaPrettoSlider valueLabelDisplay="auto" aria-label="pretto slider" defaultValue={(note/ 1046)*100} onChange={(e,v) => onChangeNote(v)}/>
-      <TiempoPrettoSlider valueLabelDisplay="auto" aria-label="pretto slider" defaultValue={(time / 16)*100} onChange={(e,v) => onChangeTime(v)}/>
+      <Icon className={cls.icon} onClick={e => onAddUp()}>arrow_downward</Icon>
+      <NotaPrettoSlider valueLabelDisplay="auto" aria-label="pretto slider" defaultValue={((note-300)/ 700)*100} onChangeCommitted={(e,v) => onChangeNote(Math.round(v*700/100+300))}/>
+      <Icon className={cls.icon} onClick={e => onAddDown()}>arrow_upward</Icon>
+      <TiempoPrettoSlider valueLabelDisplay="auto" aria-label="pretto slider" defaultValue={(time / 16)*100} onChangeCommitted={(e,v) => onChangeTime(Math.round(v*16/100))}/>
+      <Icon className={cls.icon} onClick={e => onDelete()}>close</Icon>
     </div>
   );
 }

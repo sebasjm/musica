@@ -1,29 +1,27 @@
 import {useState, useEffect} from 'react';
 import Control from '../src/boton'
+import Tone from 'tone'
+
 // from
 // https://stackoverflow.com/questions/39200994/play-specific-frequency-with-javascript
 
 const playNote = (frequency, duration) => new Promise(resolve => {
-  var audioCtx = new(window.AudioContext || window.webkitAudioContext)();
-  var oscillator = audioCtx.createOscillator();
-
-  oscillator.type = 'sine';
-  oscillator.frequency.value = frequency; 
-  oscillator.connect(audioCtx.destination);
-  oscillator.start();
+  var osc = new Tone.Oscillator(frequency, "sine")
+	.toMaster() //connected to the master output
+	.start(); // start it right away
 
   setTimeout( () => {
-    oscillator.stop();
+    osc.stop();
     resolve();
-  }, duration);
+  }, 1000 * 256 / (duration * tempo));
 
 })
 
-const playMelody = notes => notes.length > 0 ? 
+let time = 0
+const playMelody = (flag,notes) => notes.length === 0 ? Promise.resolve() :
     notes.reduce( (p, note) => p.then( _ =>
-        playNote(note[0], 1000 * 256 / (note[1] * tempo))
+        flag === time ? playNote(...note) : Promise.reject()
     ), Promise.resolve() ) 
-    : Promise.resolve()
 
 const tempo = 100;
 
@@ -35,10 +33,18 @@ const change = (notes, index, note, time) => {
 
 const View = ({defaultNotes}) => { 
     const [ notes, setNotes ] = useState(defaultNotes)
-    return <div onClick={e => playMelody(notes) }>
-        play
-        {notes.map( (n,i) => <div>
-            {n[0]},{n[1]} <Control key={i} note={n[0]} time={n[1]} onChangeNote={v => setNotes( change(notes, i, v, n[1])) } onChangeTime={v => setNotes( change(notes, i, n[0], v))} />
+    return <div >
+        <div onClick={e => playMelody(++time, notes) }>
+         play
+        </div>
+        {notes.map( (n,i) => <div key={i}>
+            <Control key={JSON.stringify(n)+i} 
+                note={n[0]} time={n[1]} 
+                onChangeNote={v => setNotes( change(notes, i, v, n[1])) } onChangeTime={v => setNotes( change(notes, i, n[0], v))} 
+                onAddUp={ v => setNotes([...notes.slice(0, i), n, ...notes.slice(i)]) }
+                onAddDown={ v =>  setNotes([...notes.slice(0, i+1), n,...notes.slice(i+1)]) }
+                onDelete={v => setNotes([...notes.slice(0, i), ...notes.slice(i + 1)]) }
+            />
         </div>)}
     </div>
 }
